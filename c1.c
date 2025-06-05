@@ -1,9 +1,19 @@
+// =============================
+// Weather-Based Outfit Recommender in C Programming 
+// =============================
+// Description:
+// Enhanced version with jacket selection, tips, history, time-based greetings,
+// and more diverse outfits. Total ~600 lines.
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+
+// =============================
+// CONSTANTS AND DEFINITIONS
+// =============================
 
 #define MAX_LEN 100
 #define NUM_OUTFITS 5
@@ -15,6 +25,7 @@
 #define MIN_TEMP -50.0
 #define MAX_TEMP 50.0
 
+// ANSI color codes for terminal UI
 #define GREEN   "\033[1;32m"
 #define BLUE    "\033[1;34m"
 #define CYAN    "\033[1;36m"
@@ -23,6 +34,9 @@
 #define MAGENTA "\033[1;35m"
 #define RESET   "\033[0m"
 
+// =============================
+// STRUCTURE DEFINITIONS
+// =============================
 
 typedef struct {
     char title[MAX_LEN];
@@ -42,10 +56,12 @@ typedef struct {
     char jacket[MAX_LEN];
     Weather weather;
     char user_note[MAX_LEN]; // User note feature
-    char mood[MAX_LEN];      // Mood feature
-    char favorite[MAX_LEN];  // NEW FEATURE: Mark as favorite (yes/no)
+    char mood[MAX_LEN];      // NEW FEATURE: mood field in history
 } HistoryEntry;
 
+// =============================
+// GLOBAL DATA ARRAYS
+// =============================
 
 Outfit cold_outfits[NUM_OUTFITS] = {
     {"Winter Warrior", {"Trench Coat", "Corduroy Pants", "Turtleneck"}},
@@ -86,6 +102,10 @@ char hot_jackets[NUM_JACKETS][MAX_LEN] = {"Mesh Jacket", "Light Hoodie", "Open S
 HistoryEntry history[MAX_HISTORY];
 int history_count = 0;
 
+// =============================
+// FUNCTION DECLARATIONS
+// =============================
+
 void print_banner();
 void display_greeting();
 void strip_newline(char *str);
@@ -98,11 +118,15 @@ void display_outfits(Outfit outfits[], int size);
 void display_options(char options[][MAX_LEN], int count);
 void simulate_loading(const char *msg);
 void show_weather_tips(const char *condition);
-void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood, const char *favorite); // updated
+void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood); // updated
 void show_history();
 void print_divider();
 void repeat_menu();
 void farewell();
+
+// =============================
+// USER NOTE FEATURE
+// =============================
 
 void get_user_note(char *note) {
     printf("\n(Optional) Add a note about this outfit (e.g., occasion, mood, etc.): ");
@@ -110,21 +134,19 @@ void get_user_note(char *note) {
     strip_newline(note);
 }
 
+// =============================
+// NEW FEATURE: MOOD INPUT
+// =============================
+
 void get_user_mood(char *mood) {
     printf("\n(Optional) How are you feeling today? (e.g., happy, energetic, laid-back): ");
     fgets(mood, MAX_LEN, stdin);
     strip_newline(mood);
 }
 
-void get_favorite_response(char *favorite) {
-    printf("\nWould you like to mark this outfit as a favorite? (yes/no): ");
-    fgets(favorite, MAX_LEN, stdin);
-    strip_newline(favorite);
-    // Standardize
-    for (int i = 0; favorite[i]; i++) favorite[i] = tolower(favorite[i]);
-    if (strcmp(favorite, "yes") != 0)
-        strcpy(favorite, "no");
-}
+// =============================
+// MAIN FUNCTION
+// =============================
 
 void suggest_color_style(const char *condition) {
     printf(MAGENTA "\n--- Style Suggestion ---\n" RESET);
@@ -233,7 +255,9 @@ int main() {
     return 0;
 }
 
-
+// =============================
+// FINAL UPDATE TO RECOMMENDER
+// =============================
 
 void recommend_outfit(const Weather *weather) {
     const char *category = get_category(weather->temp);
@@ -280,17 +304,13 @@ void recommend_outfit(const Weather *weather) {
     display_options(jackets, NUM_JACKETS);
     int jacket_choice = get_valid_choice(NUM_JACKETS) - 1;
 
-    // User Note
+    // User Note Feature
     char user_note[MAX_LEN] = "";
     get_user_note(user_note);
 
-    // Mood
+    // NEW FEATURE: Mood input
     char mood[MAX_LEN] = "";
     get_user_mood(mood);
-
-    // NEW FEATURE: Mark as favorite
-    char favorite[MAX_LEN] = "";
-    get_favorite_response(favorite);
 
     // Final Recommendation
     printf(GREEN "\n--- Your Outfit Recommendation ---\n" RESET);
@@ -306,14 +326,16 @@ void recommend_outfit(const Weather *weather) {
         printf("Your note: %s\n", user_note);
     if (strlen(mood) > 0)
         printf("Your mood: %s\n", mood);
-    printf("Marked as favorite: %s\n", strcmp(favorite, "yes") == 0 ? "Yes" : "No");
 
     show_weather_tips(weather->condition);
     suggest_color_style(weather->condition);
-    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice], user_note, mood, favorite);
+    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice], user_note, mood);
     wait_for_user();
 }
 
+// =============================
+// FUNCTION DEFINITIONS
+// =============================
 
 void print_banner() {
     printf(MAGENTA "\n==== Weather-Based Outfit Recommender ====\n" RESET);
@@ -426,7 +448,8 @@ void show_weather_tips(const char *condition) {
         printf("Stay comfortable and adapt as needed.\n");
 }
 
-void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood, const char *favorite) {
+// Save user note and mood to history
+void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood) {
     if (history_count == MAX_HISTORY) history_count = 0; // circular
     history[history_count].outfit = o;
     strcpy(history[history_count].weather.city, w.city);
@@ -443,10 +466,6 @@ void save_history(Outfit o, Weather w, const char *a, const char *s, const char 
         strncpy(history[history_count].mood, mood, MAX_LEN);
     else
         history[history_count].mood[0] = '\0';
-    if (favorite)
-        strncpy(history[history_count].favorite, favorite, MAX_LEN);
-    else
-        history[history_count].favorite[0] = '\0';
     history_count++;
 }
 
@@ -472,8 +491,6 @@ void show_history() {
             printf("Note: %s\n", h.user_note);
         if (strlen(h.mood) > 0)
             printf("Mood: %s\n", h.mood);
-        if (strcmp(h.favorite, "yes") == 0)
-            printf(GREEN "★ Favorite!\n" RESET);
     }
     wait_for_user();
 }
