@@ -191,12 +191,17 @@ void farewell();
 void rate_outfit(const char *outfit_name); // New rating feature
 void show_ratings(); // New rating feature
 void display_fashion_affirmation(); // New minor feature
+
 void add_to_favorites(const Outfit *outfit, const char *accessory, const char *shoe, const char *jacket);
 void show_favorites();
 void remove_favorite(int index);
 void show_seasonal_suggestions();
 const char* get_current_season();
 void suggest_special_event_outfit();
+
+void get_general_feedback(); // NEW FEATURE: General feedback function
+
+
 
 // =============================
 // USER NOTE FEATURE IMPLEMENTATION
@@ -231,6 +236,7 @@ int main() {
         print_banner();
         display_greeting(); // Uses the consolidated greeting
         display_seasonal_tip(); // Call the new seasonal tip function
+
         printf("\n" CYAN "1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. View Favorite Outfits\n5. Seasonal Suggestions\n6. Exit\n" RESET);
         int choice = get_valid_choice(6);
 
@@ -240,6 +246,32 @@ int main() {
         else if (choice == 3) show_ratings();
         else if (choice == 2) show_history();
         else {
+
+        main_menu(); // Displays main menu options
+        int choice; // Declare choice here
+
+        // Use get_valid_choice with the correct max for the main menu
+        printf("\nEnter your choice (1-6, or 0 for Surprise Me!): "); // Adjusted prompt for main menu
+        if (scanf("%d", &choice) != 1 || (choice < 0 || choice > 6)) { // Check for valid input range for main menu
+            printf(RED "Invalid input. Please enter a number between 1 and 6, or 0 for Surprise Me!\n" RESET);
+            while (getchar() != '\n'); // Clear invalid input
+            continue; // Restart the loop
+        }
+        while (getchar() != '\n'); // Clear the newline character
+
+        if (choice == 6) { // Exit option (now 6)
+            break;
+        } else if (choice == 2) { // View History
+            show_history();
+        } else if (choice == 3) { // View Outfit Ratings
+            show_ratings();
+        } else if (choice == 4) { // Help
+            show_help_section();
+        } else if (choice == 5) { // Give Feedback
+            get_general_feedback();
+        }
+        else { // Get Outfit Recommendation (choice == 1 or 0 for surprise)
+
             get_weather_input(&current_weather);
             check_for_secret_code();
             simulate_loading("Analyzing weather and crafting your stylish fit...");
@@ -568,7 +600,10 @@ void show_help_section() {
 }
 
 void main_menu() {
+
     printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. View Favorite Outfits\n5. Exit\n" RESET);
+
+    printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. Help\n5. Give Feedback\n6. Exit\n" RESET);
 }
 
 void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood) {
@@ -634,6 +669,7 @@ void repeat_menu() {
 
 void farewell() {
     printf(GREEN "\nThank you for using the Outfit Recommender!\nStay stylish and weather-ready!\n" RESET);
+
 }
 
 void rate_outfit(const char *outfit_name) {
@@ -851,4 +887,19 @@ void suggest_special_event_outfit() {
         add_to_favorites(&special_outfit, "Event-specific accessory", 
                         "Appropriate footwear", "Weather-appropriate outerwear");
     }
+
+// =============================
+// NEW FEATURE: GENERAL FEEDBACK
+// =============================
+void get_general_feedback() {
+    char feedback_text[MAX_LEN * 2]; // Allow for a longer feedback
+    printf(MAGENTA "\n--- Give General Feedback ---\n" RESET);
+    printf("Please share your thoughts on the Outfit Recommender (e.g., suggestions, compliments, bugs): \n");
+    fgets(feedback_text, sizeof(feedback_text), stdin);
+    strip_newline(feedback_text);
+
+    printf(GREEN "\nThank you for your valuable feedback! We appreciate you taking the time.\n" RESET);
+    // In a real application, this feedback would be saved to a file or sent to a server.
+    // For this example, we just acknowledge it.
+    wait_for_user();
 }
