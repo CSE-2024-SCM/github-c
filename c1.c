@@ -1,16 +1,9 @@
-// =============================
-// Weather-Based Outfit Recommender in C Programming 
-// =============================
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-
-// =============================
-// CONSTANTS AND DEFINITIONS
-// =============================
 
 #define MAX_LEN 100
 #define NUM_OUTFITS 5
@@ -30,9 +23,6 @@
 #define MAGENTA "\033[1;35m"
 #define RESET   "\033[0m"
 
-// =============================
-// STRUCTURE DEFINITIONS
-// =============================
 
 typedef struct {
     char title[MAX_LEN];
@@ -56,9 +46,6 @@ typedef struct {
     char favorite[MAX_LEN];  // NEW FEATURE: Mark as favorite (yes/no)
 } HistoryEntry;
 
-// =============================
-// GLOBAL DATA ARRAYS
-// =============================
 
 Outfit cold_outfits[NUM_OUTFITS] = {
     {"Winter Warrior", {"Trench Coat", "Corduroy Pants", "Turtleneck"}},
@@ -99,10 +86,6 @@ char hot_jackets[NUM_JACKETS][MAX_LEN] = {"Mesh Jacket", "Light Hoodie", "Open S
 HistoryEntry history[MAX_HISTORY];
 int history_count = 0;
 
-// =============================
-// FUNCTION DECLARATIONS
-// =============================
-
 void print_banner();
 void display_greeting();
 void strip_newline(char *str);
@@ -133,10 +116,6 @@ void get_user_mood(char *mood) {
     strip_newline(mood);
 }
 
-// =============================
-// NEW FEATURE: Mark as favorite
-// =============================
-
 void get_favorite_response(char *favorite) {
     printf("\nWould you like to mark this outfit as a favorite? (yes/no): ");
     fgets(favorite, MAX_LEN, stdin);
@@ -146,10 +125,6 @@ void get_favorite_response(char *favorite) {
     if (strcmp(favorite, "yes") != 0)
         strcpy(favorite, "no");
 }
-
-// =============================
-// MAIN FUNCTION
-// =============================
 
 void suggest_color_style(const char *condition) {
     printf(MAGENTA "\n--- Style Suggestion ---\n" RESET);
@@ -258,9 +233,7 @@ int main() {
     return 0;
 }
 
-// =============================
-// FINAL UPDATE TO RECOMMENDER
-// =============================
+
 
 void recommend_outfit(const Weather *weather) {
     const char *category = get_category(weather->temp);
@@ -341,9 +314,6 @@ void recommend_outfit(const Weather *weather) {
     wait_for_user();
 }
 
-// =============================
-// FUNCTION DEFINITIONS
-// =============================
 
 void print_banner() {
     printf(MAGENTA "\n==== Weather-Based Outfit Recommender ====\n" RESET);
