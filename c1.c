@@ -1,4 +1,3 @@
-
 // =============================
 // Weather-Based Outfit Recommender in C Programming 
 // =============================
@@ -64,6 +63,13 @@ typedef struct {
     Weather weather;
 } HistoryEntry;
 
+typedef struct {
+    int rating;  // 1-5 stars
+    char feedback[MAX_LEN];
+    char outfit_name[MAX_LEN];
+    char date[MAX_LEN];
+} OutfitRating;
+
 // =============================
 // GLOBAL DATA ARRAYS
 // =============================
@@ -107,6 +113,9 @@ char hot_jackets[NUM_JACKETS][MAX_LEN] = {"Mesh Jacket", "Light Hoodie", "Open S
 HistoryEntry history[MAX_HISTORY];
 int history_count = 0;
 
+OutfitRating ratings[100];  // Store up to 100 ratings
+int rating_count = 0;
+
 
 
 
@@ -133,6 +142,8 @@ void show_history();
 void print_divider();
 void repeat_menu();
 void farewell();
+void rate_outfit(const char *outfit_name);
+void show_ratings();
 
 // =============================
 // MAIN FUNCTION
@@ -143,10 +154,11 @@ int main() {
         Weather current_weather;
         print_banner();
         display_greeting();
-        printf("\n" CYAN "1. Get Outfit Recommendation\n2. View Past Recommendations\n3. Exit\n" RESET);
-        int choice = get_valid_choice(3);
+        printf("\n" CYAN "1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. Exit\n" RESET);
+        int choice = get_valid_choice(4);
 
-        if (choice == 3) break;
+        if (choice == 4) break;
+        else if (choice == 3) show_ratings();
         else if (choice == 2) show_history();
         else {
             get_weather_input(&current_weather);
@@ -157,8 +169,12 @@ int main() {
         print_divider();
         repeat_menu();
         if (get_valid_choice(2) == 2) break;
-    } 
-    // =============================
+    }
+    farewell();
+    return 0;
+}
+
+// =============================
 // COLOR AND STYLE SUGGESTION
 // =============================
 
@@ -278,35 +294,6 @@ void main_menu() {
     printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View History\n3. Help\n4. Exit\n" RESET);
 }
 
-int main() {
-    while (1) {
-        Weather current_weather;
-        print_banner();
-        display_greeting_with_day();
-        main_menu();
-        int choice = get_valid_choice(4);
-
-        if (choice == 4) break;
-        else if (choice == 2) show_history();
-        else if (choice == 3) show_help_section();
-        else {
-            get_weather_input(&current_weather);
-            check_for_secret_code();
-            simulate_loading("Analyzing weather and crafting your stylish fit...");
-            recommend_outfit(&current_weather);
-        }
-
-        print_divider();
-        repeat_menu();
-        if (get_valid_choice(2) == 2) break;
-    }
-
-    farewell();
-    return 0;
-}
-
-
-
 // =============================
 // FINAL UPDATE TO RECOMMENDER
 // =============================
@@ -370,12 +357,13 @@ void recommend_outfit(const Weather *weather) {
     show_weather_tips(weather->condition);
     suggest_color_style(weather->condition);
     save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice]);
+
+    printf("\nWould you like to rate this outfit? (1: Yes, 2: No): ");
+    if (get_valid_choice(2) == 1) {
+        rate_outfit(selected.title);
+    }
+
     wait_for_user();
-}
-
-
-    farewell();
-    return 0;
 }
 
 // =============================
@@ -477,84 +465,6 @@ void display_options(char options[][MAX_LEN], int count) {
     }
 }
 
-void recommend_outfit(const Weather *weather) {
-    const char *category = get_category(weather->temp);
-
-    Outfit *outfits;
-    char (*accessories)[MAX_LEN];
-    char (*shoes)[MAX_LEN];
-    char (*jackets)[MAX_LEN];
-
-    if (strcmp(category, "cold") == 0) {
-        outfits = cold_outfits;
-        accessories = cold_accessories;
-        shoes = cold_shoes;
-        jackets = cold_jackets;
-    }
-    else if (strcmp(category, "moderate") == 0) {
-        outfits = moderate_outfits;
-        accessories = moderate_accessories;
-        shoes = moderate_shoes;
-        jackets = moderate_jackets;
-    }
-    else {
-        outfits = hot_outfits;
-        accessories = hot_accessories;
-        shoes = hot_shoes;
-        jackets = hot_jackets;
-    }
-
-    printf("\nChoose an outfit from the list below:\n");
-    display_outfits(outfits, NUM_OUTFITS);
-    int outfit_choice = get_valid_choice(NUM_OUTFITS) - 1;
-
-    printf("\nChoose an accessory:\n");
-    display_options(accessories, NUM_ACCESSORIES);
-    int acc_choice = get_valid_choice(NUM_ACCESSORIES) - 1;
-
-    printf("\nChoose a shoe option:\n");
-    display_options(shoes, NUM_SHOES);
-    int shoe_choice = get_valid_choice(NUM_SHOES) - 1;
-
-    printf("\nChoose a jacket:\n");
-    display_options(jackets, NUM_JACKETS);
-    int jacket_choice = get_valid_choice(NUM_JACKETS) - 1;
-
-    // Final Recommendation
-    printf(GREEN "\n--- Your Outfit Recommendation ---\n" RESET);
-    Outfit selected = outfits[outfit_choice];
-    printf("Outfit: %s\n", selected.title);
-    for (int i = 0; i < NUM_ITEMS; i++) {
-        printf("- %s\n", selected.items[i]);
-    }
-    printf("Accessory: %s\n", accessories[acc_choice]);
-    printf("Shoes: %s\n", shoes[shoe_choice]);
-    printf("Jacket: %s\n", jackets[jacket_choice]);
-
-    show_weather_tips(weather->condition);
-    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice]);
-    wait_for_user();
-}
-
-
-
-
-
-void show_weather_tips(const char *condition) {
-    printf(BLUE "\n--- Weather Tip ---\n" RESET);
-    if (strstr(condition, "Rain") || strstr(condition, "rain"))
-        printf("Don't forget to carry an umbrella or raincoat!\n");
-    else if (strstr(condition, "Sunny") || strstr(condition, "sunny"))
-        printf("Apply sunscreen and wear light fabrics.\n");
-    else if (strstr(condition, "Cloud") || strstr(condition, "cloud"))
-        printf("Might be a gloomy day. Bright colors can lift your mood!\n");
-    else
-        printf("Stay comfortable and adapt as needed.\n");
-}
-
-
-
-
 void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j) {
     if (history_count == MAX_HISTORY) history_count = 0; // circular
     history[history_count].outfit = o;
@@ -566,10 +476,6 @@ void save_history(Outfit o, Weather w, const char *a, const char *s, const char 
     strcpy(history[history_count].jacket, j);
     history_count++;
 }
-
-
-
-
 
 void show_history() {
     if (history_count == 0) {
@@ -594,6 +500,7 @@ void show_history() {
     
     wait_for_user();
 }
+
 void print_divider() {
     printf("\n----------------------------------------\n");
 }
@@ -604,4 +511,56 @@ void repeat_menu() {
 
 void farewell() {
     printf(GREEN "\nThank you for using the Outfit Recommender!\nStay stylish and weather-ready!\n" RESET);
+}
+
+void rate_outfit(const char *outfit_name) {
+    if (rating_count >= 100) {
+        printf(RED "\nRating storage is full!\n" RESET);
+        return;
+    }
+
+    printf(CYAN "\n--- Rate Your Outfit ---\n" RESET);
+    printf("How would you rate this outfit? (1-5 stars): ");
+    int rating = get_valid_choice(5);
+    
+    printf("Any feedback? (optional): ");
+    char feedback[MAX_LEN];
+    fgets(feedback, MAX_LEN, stdin);
+    strip_newline(feedback);
+
+    // Get current date
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+    char date[MAX_LEN];
+    strftime(date, MAX_LEN, "%Y-%m-%d", tm_info);
+
+    // Save rating
+    ratings[rating_count].rating = rating;
+    strcpy(ratings[rating_count].feedback, feedback);
+    strcpy(ratings[rating_count].outfit_name, outfit_name);
+    strcpy(ratings[rating_count].date, date);
+    rating_count++;
+
+    printf(GREEN "\nThank you for your feedback!\n" RESET);
+}
+
+void show_ratings() {
+    if (rating_count == 0) {
+        printf(YELLOW "\nNo ratings available yet.\n" RESET);
+        return;
+    }
+
+    printf(CYAN "\n--- Outfit Ratings ---\n" RESET);
+    for (int i = 0; i < rating_count; i++) {
+        printf("\nOutfit: %s\n", ratings[i].outfit_name);
+        printf("Rating: ");
+        for (int j = 0; j < ratings[i].rating; j++) {
+            printf("★");
+        }
+        printf("\nDate: %s\n", ratings[i].date);
+        if (strlen(ratings[i].feedback) > 0) {
+            printf("Feedback: %s\n", ratings[i].feedback);
+        }
+        print_divider();
+    }
 }
