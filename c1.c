@@ -1,4 +1,3 @@
-
 // =============================
 // Weather-Based Outfit Recommender in C Programming 
 // =============================
@@ -11,8 +10,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-
-
 
 // =============================
 // CONSTANTS AND DEFINITIONS
@@ -27,10 +24,6 @@
 #define MAX_HISTORY 5
 #define MIN_TEMP -50.0
 #define MAX_TEMP 50.0
-
-
-
-
 
 // ANSI color codes for terminal UI
 #define GREEN   "\033[1;32m"
@@ -62,6 +55,8 @@ typedef struct {
     char shoe[MAX_LEN];
     char jacket[MAX_LEN];
     Weather weather;
+    char user_note[MAX_LEN]; // User note feature
+    char mood[MAX_LEN];      // NEW FEATURE: mood field in history
 } HistoryEntry;
 
 // =============================
@@ -107,11 +102,6 @@ char hot_jackets[NUM_JACKETS][MAX_LEN] = {"Mesh Jacket", "Light Hoodie", "Open S
 HistoryEntry history[MAX_HISTORY];
 int history_count = 0;
 
-
-
-
-
-
 // =============================
 // FUNCTION DECLARATIONS
 // =============================
@@ -128,38 +118,34 @@ void display_outfits(Outfit outfits[], int size);
 void display_options(char options[][MAX_LEN], int count);
 void simulate_loading(const char *msg);
 void show_weather_tips(const char *condition);
-void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j);
+void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood); // updated
 void show_history();
 void print_divider();
 void repeat_menu();
 void farewell();
 
 // =============================
-// MAIN FUNCTION
+// USER NOTE FEATURE
 // =============================
 
-int main() {
-    while (1) {
-        Weather current_weather;
-        print_banner();
-        display_greeting();
-        printf("\n" CYAN "1. Get Outfit Recommendation\n2. View Past Recommendations\n3. Exit\n" RESET);
-        int choice = get_valid_choice(3);
+void get_user_note(char *note) {
+    printf("\n(Optional) Add a note about this outfit (e.g., occasion, mood, etc.): ");
+    fgets(note, MAX_LEN, stdin);
+    strip_newline(note);
+}
 
-        if (choice == 3) break;
-        else if (choice == 2) show_history();
-        else {
-            get_weather_input(&current_weather);
-            simulate_loading("Analyzing weather and finding perfect outfit...");
-            recommend_outfit(&current_weather);
-        }
+// =============================
+// NEW FEATURE: MOOD INPUT
+// =============================
 
-        print_divider();
-        repeat_menu();
-        if (get_valid_choice(2) == 2) break;
-    } 
-    // =============================
-// COLOR AND STYLE SUGGESTION
+void get_user_mood(char *mood) {
+    printf("\n(Optional) How are you feeling today? (e.g., happy, energetic, laid-back): ");
+    fgets(mood, MAX_LEN, stdin);
+    strip_newline(mood);
+}
+
+// =============================
+// MAIN FUNCTION
 // =============================
 
 void suggest_color_style(const char *condition) {
@@ -175,12 +161,6 @@ void suggest_color_style(const char *condition) {
     else
         printf("Neutral tones like beige, grey, or navy are safe and elegant.\n");
 }
-
-
-
-// =============================
-// DAY-BASED GREETING
-// =============================
 
 void display_greeting_with_day() {
     time_t t = time(NULL);
@@ -200,12 +180,6 @@ void display_greeting_with_day() {
         printf(CYAN "Good Evening! Time for something cozy or classy.\n" RESET);
 }
 
-
-
-// =============================
-// TEMPERATURE ADVICE
-// =============================
-
 void give_temperature_advice(float temp) {
     printf(MAGENTA "\n--- Temperature Advice ---\n" RESET);
 
@@ -223,23 +197,11 @@ void give_temperature_advice(float temp) {
         printf("Extremely hot! Avoid dark colors and heavy clothing. Stay cool!\n");
 }
 
-
-
-// =============================
-// HIDDEN FEATURE: SECRET MENU
-// =============================
-
 void secret_feature() {
     printf(CYAN "\nYou've unlocked a secret tip! 🌟\n" RESET);
     printf("Tip: Mix textures! Pair cotton with denim or knits for visual interest.\n");
     wait_for_user();
 }
-
-
-
-// =============================
-// EXTENDED MENU OPTION
-// =============================
 
 void check_for_secret_code() {
     char input[MAX_LEN];
@@ -252,12 +214,6 @@ void check_for_secret_code() {
     }
 }
 
-
-
-// =============================
-// HELP SECTION
-// =============================
-
 void show_help_section() {
     printf(CYAN "\n--- Help & Tips ---\n" RESET);
     printf("1. Temperature input: Enter in Celsius between -50 and 50.\n");
@@ -267,12 +223,6 @@ void show_help_section() {
     printf("5. Look out for hidden Easter eggs! 🤫\n");
     wait_for_user();
 }
-
-
-
-// =============================
-// EXTENDED MAIN MENU
-// =============================
 
 void main_menu() {
     printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View History\n3. Help\n4. Exit\n" RESET);
@@ -304,8 +254,6 @@ int main() {
     farewell();
     return 0;
 }
-
-
 
 // =============================
 // FINAL UPDATE TO RECOMMENDER
@@ -356,6 +304,14 @@ void recommend_outfit(const Weather *weather) {
     display_options(jackets, NUM_JACKETS);
     int jacket_choice = get_valid_choice(NUM_JACKETS) - 1;
 
+    // User Note Feature
+    char user_note[MAX_LEN] = "";
+    get_user_note(user_note);
+
+    // NEW FEATURE: Mood input
+    char mood[MAX_LEN] = "";
+    get_user_mood(mood);
+
     // Final Recommendation
     printf(GREEN "\n--- Your Outfit Recommendation ---\n" RESET);
     Outfit selected = outfits[outfit_choice];
@@ -366,16 +322,15 @@ void recommend_outfit(const Weather *weather) {
     printf("Accessory: %s\n", accessories[acc_choice]);
     printf("Shoes: %s\n", shoes[shoe_choice]);
     printf("Jacket: %s\n", jackets[jacket_choice]);
+    if (strlen(user_note) > 0)
+        printf("Your note: %s\n", user_note);
+    if (strlen(mood) > 0)
+        printf("Your mood: %s\n", mood);
 
     show_weather_tips(weather->condition);
     suggest_color_style(weather->condition);
-    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice]);
+    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice], user_note, mood);
     wait_for_user();
-}
-
-
-    farewell();
-    return 0;
 }
 
 // =============================
@@ -401,7 +356,7 @@ void display_greeting() {
 
 void strip_newline(char *str) {
     size_t len = strlen(str);
-    if (str[len - 1] == '\n') str[len - 1] = '\0';
+    if (len > 0 && str[len - 1] == '\n') str[len - 1] = '\0';
 }
 
 void wait_for_user() {
@@ -457,7 +412,11 @@ void simulate_loading(const char *msg) {
     for (int i = 0; i < 3; i++) {
         printf(".");
         fflush(stdout);
+#ifdef _WIN32
+        Sleep(1000);
+#else
         sleep(1);
+#endif
     }
     printf("\n");
 }
@@ -477,69 +436,6 @@ void display_options(char options[][MAX_LEN], int count) {
     }
 }
 
-void recommend_outfit(const Weather *weather) {
-    const char *category = get_category(weather->temp);
-
-    Outfit *outfits;
-    char (*accessories)[MAX_LEN];
-    char (*shoes)[MAX_LEN];
-    char (*jackets)[MAX_LEN];
-
-    if (strcmp(category, "cold") == 0) {
-        outfits = cold_outfits;
-        accessories = cold_accessories;
-        shoes = cold_shoes;
-        jackets = cold_jackets;
-    }
-    else if (strcmp(category, "moderate") == 0) {
-        outfits = moderate_outfits;
-        accessories = moderate_accessories;
-        shoes = moderate_shoes;
-        jackets = moderate_jackets;
-    }
-    else {
-        outfits = hot_outfits;
-        accessories = hot_accessories;
-        shoes = hot_shoes;
-        jackets = hot_jackets;
-    }
-
-    printf("\nChoose an outfit from the list below:\n");
-    display_outfits(outfits, NUM_OUTFITS);
-    int outfit_choice = get_valid_choice(NUM_OUTFITS) - 1;
-
-    printf("\nChoose an accessory:\n");
-    display_options(accessories, NUM_ACCESSORIES);
-    int acc_choice = get_valid_choice(NUM_ACCESSORIES) - 1;
-
-    printf("\nChoose a shoe option:\n");
-    display_options(shoes, NUM_SHOES);
-    int shoe_choice = get_valid_choice(NUM_SHOES) - 1;
-
-    printf("\nChoose a jacket:\n");
-    display_options(jackets, NUM_JACKETS);
-    int jacket_choice = get_valid_choice(NUM_JACKETS) - 1;
-
-    // Final Recommendation
-    printf(GREEN "\n--- Your Outfit Recommendation ---\n" RESET);
-    Outfit selected = outfits[outfit_choice];
-    printf("Outfit: %s\n", selected.title);
-    for (int i = 0; i < NUM_ITEMS; i++) {
-        printf("- %s\n", selected.items[i]);
-    }
-    printf("Accessory: %s\n", accessories[acc_choice]);
-    printf("Shoes: %s\n", shoes[shoe_choice]);
-    printf("Jacket: %s\n", jackets[jacket_choice]);
-
-    show_weather_tips(weather->condition);
-    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice]);
-    wait_for_user();
-}
-
-
-
-
-
 void show_weather_tips(const char *condition) {
     printf(BLUE "\n--- Weather Tip ---\n" RESET);
     if (strstr(condition, "Rain") || strstr(condition, "rain"))
@@ -552,10 +448,8 @@ void show_weather_tips(const char *condition) {
         printf("Stay comfortable and adapt as needed.\n");
 }
 
-
-
-
-void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j) {
+// Save user note and mood to history
+void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood) {
     if (history_count == MAX_HISTORY) history_count = 0; // circular
     history[history_count].outfit = o;
     strcpy(history[history_count].weather.city, w.city);
@@ -564,12 +458,16 @@ void save_history(Outfit o, Weather w, const char *a, const char *s, const char 
     strcpy(history[history_count].accessory, a);
     strcpy(history[history_count].shoe, s);
     strcpy(history[history_count].jacket, j);
+    if (user_note)
+        strncpy(history[history_count].user_note, user_note, MAX_LEN);
+    else
+        history[history_count].user_note[0] = '\0';
+    if (mood)
+        strncpy(history[history_count].mood, mood, MAX_LEN);
+    else
+        history[history_count].mood[0] = '\0';
     history_count++;
 }
-
-
-
-
 
 void show_history() {
     if (history_count == 0) {
@@ -589,11 +487,14 @@ void show_history() {
         printf("Accessory: %s\n", h.accessory);
         printf("Shoes: %s\n", h.shoe);
         printf("Jacket: %s\n", h.jacket);
+        if (strlen(h.user_note) > 0)
+            printf("Note: %s\n", h.user_note);
+        if (strlen(h.mood) > 0)
+            printf("Mood: %s\n", h.mood);
     }
-    
-    
     wait_for_user();
 }
+
 void print_divider() {
     printf("\n----------------------------------------\n");
 }
