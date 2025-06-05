@@ -55,7 +55,8 @@ typedef struct {
     char shoe[MAX_LEN];
     char jacket[MAX_LEN];
     Weather weather;
-    char user_note[MAX_LEN]; // NEW FEATURE: user note field in history
+    char user_note[MAX_LEN]; // User note feature
+    char mood[MAX_LEN];      // NEW FEATURE: mood field in history
 } HistoryEntry;
 
 // =============================
@@ -117,20 +118,30 @@ void display_outfits(Outfit outfits[], int size);
 void display_options(char options[][MAX_LEN], int count);
 void simulate_loading(const char *msg);
 void show_weather_tips(const char *condition);
-void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note); // updated
+void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood); // updated
 void show_history();
 void print_divider();
 void repeat_menu();
 void farewell();
 
 // =============================
-// NEW FEATURE: ALLOW USER TO ADD A NOTE TO HISTORY ENTRY
+// USER NOTE FEATURE
 // =============================
 
 void get_user_note(char *note) {
     printf("\n(Optional) Add a note about this outfit (e.g., occasion, mood, etc.): ");
     fgets(note, MAX_LEN, stdin);
     strip_newline(note);
+}
+
+// =============================
+// NEW FEATURE: MOOD INPUT
+// =============================
+
+void get_user_mood(char *mood) {
+    printf("\n(Optional) How are you feeling today? (e.g., happy, energetic, laid-back): ");
+    fgets(mood, MAX_LEN, stdin);
+    strip_newline(mood);
 }
 
 // =============================
@@ -293,9 +304,13 @@ void recommend_outfit(const Weather *weather) {
     display_options(jackets, NUM_JACKETS);
     int jacket_choice = get_valid_choice(NUM_JACKETS) - 1;
 
-    // NEW FEATURE: Prompt user for a note and save in history
+    // User Note Feature
     char user_note[MAX_LEN] = "";
     get_user_note(user_note);
+
+    // NEW FEATURE: Mood input
+    char mood[MAX_LEN] = "";
+    get_user_mood(mood);
 
     // Final Recommendation
     printf(GREEN "\n--- Your Outfit Recommendation ---\n" RESET);
@@ -309,10 +324,12 @@ void recommend_outfit(const Weather *weather) {
     printf("Jacket: %s\n", jackets[jacket_choice]);
     if (strlen(user_note) > 0)
         printf("Your note: %s\n", user_note);
+    if (strlen(mood) > 0)
+        printf("Your mood: %s\n", mood);
 
     show_weather_tips(weather->condition);
     suggest_color_style(weather->condition);
-    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice], user_note);
+    save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice], user_note, mood);
     wait_for_user();
 }
 
@@ -431,8 +448,8 @@ void show_weather_tips(const char *condition) {
         printf("Stay comfortable and adapt as needed.\n");
 }
 
-// UPDATED: Save user note to history
-void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note) {
+// Save user note and mood to history
+void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood) {
     if (history_count == MAX_HISTORY) history_count = 0; // circular
     history[history_count].outfit = o;
     strcpy(history[history_count].weather.city, w.city);
@@ -445,6 +462,10 @@ void save_history(Outfit o, Weather w, const char *a, const char *s, const char 
         strncpy(history[history_count].user_note, user_note, MAX_LEN);
     else
         history[history_count].user_note[0] = '\0';
+    if (mood)
+        strncpy(history[history_count].mood, mood, MAX_LEN);
+    else
+        history[history_count].mood[0] = '\0';
     history_count++;
 }
 
@@ -468,6 +489,8 @@ void show_history() {
         printf("Jacket: %s\n", h.jacket);
         if (strlen(h.user_note) > 0)
             printf("Note: %s\n", h.user_note);
+        if (strlen(h.mood) > 0)
+            printf("Mood: %s\n", h.mood);
     }
     wait_for_user();
 }
