@@ -598,6 +598,7 @@ void repeat_menu() {
 
 void farewell() {
     printf(GREEN "\nThank you for using the Outfit Recommender!\nStay stylish and weather-ready!\n" RESET);
+
 }
 
 void rate_outfit(const char *outfit_name) {
@@ -688,4 +689,5 @@ void get_general_feedback() {
     // In a real application, this feedback would be saved to a file or sent to a server.
     // For this example, we just acknowledge it.
     wait_for_user();
+
 }
