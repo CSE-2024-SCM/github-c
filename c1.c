@@ -151,6 +151,7 @@ void farewell();
 void rate_outfit(const char *outfit_name); // New rating feature
 void show_ratings(); // New rating feature
 void display_fashion_affirmation(); // New minor feature
+void get_general_feedback(); // NEW FEATURE: General feedback function
 
 
 // =============================
@@ -190,23 +191,26 @@ int main() {
         int choice; // Declare choice here
 
         // Use get_valid_choice with the correct max for the main menu
-        printf("\nEnter your choice (1-5, or 0 for Surprise Me!): "); // Adjusted prompt for main menu
-        if (scanf("%d", &choice) != 1 || (choice < 0 || choice > 5)) { // Check for valid input range for main menu
-            printf(RED "Invalid input. Please enter a number between 1 and 5, or 0 for Surprise Me!\n" RESET);
+        printf("\nEnter your choice (1-6, or 0 for Surprise Me!): "); // Adjusted prompt for main menu
+        if (scanf("%d", &choice) != 1 || (choice < 0 || choice > 6)) { // Check for valid input range for main menu
+            printf(RED "Invalid input. Please enter a number between 1 and 6, or 0 for Surprise Me!\n" RESET);
             while (getchar() != '\n'); // Clear invalid input
             continue; // Restart the loop
         }
         while (getchar() != '\n'); // Clear the newline character
 
-        if (choice == 5) { // Exit option (now 5)
+        if (choice == 6) { // Exit option (now 6)
             break;
         } else if (choice == 2) { // View History
             show_history();
         } else if (choice == 3) { // View Outfit Ratings
             show_ratings();
-        } else if (choice == 4) { // Help (now 4)
+        } else if (choice == 4) { // Help
             show_help_section();
-        } else { // Get Outfit Recommendation (choice == 1 or 0 for surprise)
+        } else if (choice == 5) { // Give Feedback
+            get_general_feedback();
+        }
+        else { // Get Outfit Recommendation (choice == 1 or 0 for surprise)
             get_weather_input(&current_weather);
             check_for_secret_code();
             simulate_loading("Analyzing weather and crafting your stylish fit...");
@@ -528,7 +532,7 @@ void show_help_section() {
 }
 
 void main_menu() {
-    printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. Help\n5. Exit\n" RESET);
+    printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. Help\n5. Give Feedback\n6. Exit\n" RESET);
 }
 
 void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood) {
@@ -668,4 +672,20 @@ void display_fashion_affirmation() {
 
     printf(YELLOW "\n--- Fashion Inspiration ---\n" RESET);
     printf("%s\n", affirmations[random_index]);
+}
+
+// =============================
+// NEW FEATURE: GENERAL FEEDBACK
+// =============================
+void get_general_feedback() {
+    char feedback_text[MAX_LEN * 2]; // Allow for a longer feedback
+    printf(MAGENTA "\n--- Give General Feedback ---\n" RESET);
+    printf("Please share your thoughts on the Outfit Recommender (e.g., suggestions, compliments, bugs): \n");
+    fgets(feedback_text, sizeof(feedback_text), stdin);
+    strip_newline(feedback_text);
+
+    printf(GREEN "\nThank you for your valuable feedback! We appreciate you taking the time.\n" RESET);
+    // In a real application, this feedback would be saved to a file or sent to a server.
+    // For this example, we just acknowledge it.
+    wait_for_user();
 }
