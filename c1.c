@@ -30,6 +30,7 @@
 #define MAX_HISTORY 5
 #define MIN_TEMP -50.0
 #define MAX_TEMP 50.0
+#define MAX_FAVORITES 20
 
 // ANSI color codes for terminal UI
 #define GREEN   "\033[1;32m"
@@ -71,6 +72,14 @@ typedef struct {
     char outfit_name[MAX_LEN];
     char date[MAX_LEN];
 } OutfitRating;
+
+typedef struct {
+    Outfit outfit;
+    char accessory[MAX_LEN];
+    char shoe[MAX_LEN];
+    char jacket[MAX_LEN];
+    char note[MAX_LEN];
+} FavoriteOutfit;
 
 // =============================
 // GLOBAL DATA ARRAYS
@@ -118,6 +127,9 @@ int history_count = 0;
 OutfitRating ratings[100];  // Store up to 100 ratings
 int rating_count = 0;
 
+FavoriteOutfit favorites[MAX_FAVORITES];
+int favorite_count = 0;
+
 // =============================
 // FUNCTION DECLARATIONS
 // =============================
@@ -151,6 +163,9 @@ void farewell();
 void rate_outfit(const char *outfit_name); // New rating feature
 void show_ratings(); // New rating feature
 void display_fashion_affirmation(); // New minor feature
+void add_to_favorites(const Outfit *outfit, const char *accessory, const char *shoe, const char *jacket);
+void show_favorites();
+void remove_favorite(int index);
 
 
 // =============================
@@ -186,27 +201,14 @@ int main() {
         print_banner();
         display_greeting(); // Uses the consolidated greeting
         display_seasonal_tip(); // Call the new seasonal tip function
-        main_menu(); // Displays main menu options
-        int choice; // Declare choice here
+        printf("\n" CYAN "1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. View Favorite Outfits\n5. Exit\n" RESET);
+        int choice = get_valid_choice(5);
 
-        // Use get_valid_choice with the correct max for the main menu
-        printf("\nEnter your choice (1-5, or 0 for Surprise Me!): "); // Adjusted prompt for main menu
-        if (scanf("%d", &choice) != 1 || (choice < 0 || choice > 5)) { // Check for valid input range for main menu
-            printf(RED "Invalid input. Please enter a number between 1 and 5, or 0 for Surprise Me!\n" RESET);
-            while (getchar() != '\n'); // Clear invalid input
-            continue; // Restart the loop
-        }
-        while (getchar() != '\n'); // Clear the newline character
-
-        if (choice == 5) { // Exit option (now 5)
-            break;
-        } else if (choice == 2) { // View History
-            show_history();
-        } else if (choice == 3) { // View Outfit Ratings
-            show_ratings();
-        } else if (choice == 4) { // Help (now 4)
-            show_help_section();
-        } else { // Get Outfit Recommendation (choice == 1 or 0 for surprise)
+        if (choice == 5) break;
+        else if (choice == 4) show_favorites();
+        else if (choice == 3) show_ratings();
+        else if (choice == 2) show_history();
+        else {
             get_weather_input(&current_weather);
             check_for_secret_code();
             simulate_loading("Analyzing weather and crafting your stylish fit...");
@@ -215,9 +217,7 @@ int main() {
 
         print_divider();
         repeat_menu();
-        if (get_valid_choice(2) == 2) { // Exit after recommendation
-            break;
-        }
+        if (get_valid_choice(2) == 2) break;
     }
     farewell();
     return 0;
@@ -302,9 +302,18 @@ void recommend_outfit(const Weather *weather) {
     give_temperature_advice(weather->temp);
     save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice], user_note, mood);
 
-    printf("\nWould you like to rate this outfit? (1: Yes, 2: No): ");
-    if (get_valid_choice(2) == 1) {
+    printf("\nWould you like to:\n");
+    printf("1. Rate this outfit\n");
+    printf("2. Add to favorites\n");
+    printf("3. Both\n");
+    printf("4. Neither\n");
+    int choice = get_valid_choice(4);
+
+    if (choice == 1 || choice == 3) {
         rate_outfit(selected.title);
+    }
+    if (choice == 2 || choice == 3) {
+        add_to_favorites(&selected, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice]);
     }
 
     wait_for_user();
@@ -528,7 +537,7 @@ void show_help_section() {
 }
 
 void main_menu() {
-    printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. Help\n5. Exit\n" RESET);
+    printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. View Favorite Outfits\n5. Exit\n" RESET);
 }
 
 void save_history(Outfit o, Weather w, const char *a, const char *s, const char *j, const char *user_note, const char *mood) {
@@ -668,4 +677,74 @@ void display_fashion_affirmation() {
 
     printf(YELLOW "\n--- Fashion Inspiration ---\n" RESET);
     printf("%s\n", affirmations[random_index]);
+}
+
+void add_to_favorites(const Outfit *outfit, const char *accessory, const char *shoe, const char *jacket) {
+    if (favorite_count >= MAX_FAVORITES) {
+        printf(RED "\nFavorite outfits storage is full!\n" RESET);
+        return;
+    }
+
+    printf(CYAN "\n--- Add to Favorites ---\n" RESET);
+    printf("Add a note for this outfit (optional): ");
+    char note[MAX_LEN];
+    fgets(note, MAX_LEN, stdin);
+    strip_newline(note);
+
+    favorites[favorite_count].outfit = *outfit;
+    strncpy(favorites[favorite_count].accessory, accessory, MAX_LEN - 1);
+    favorites[favorite_count].accessory[MAX_LEN - 1] = '\0';
+    strncpy(favorites[favorite_count].shoe, shoe, MAX_LEN - 1);
+    favorites[favorite_count].shoe[MAX_LEN - 1] = '\0';
+    strncpy(favorites[favorite_count].jacket, jacket, MAX_LEN - 1);
+    favorites[favorite_count].jacket[MAX_LEN - 1] = '\0';
+    strncpy(favorites[favorite_count].note, note, MAX_LEN - 1);
+    favorites[favorite_count].note[MAX_LEN - 1] = '\0';
+    
+    favorite_count++;
+    printf(GREEN "\nOutfit added to favorites!\n" RESET);
+}
+
+void show_favorites() {
+    if (favorite_count == 0) {
+        printf(YELLOW "\nNo favorite outfits saved yet.\n" RESET);
+        return;
+    }
+
+    printf(CYAN "\n--- Your Favorite Outfits ---\n" RESET);
+    for (int i = 0; i < favorite_count; i++) {
+        printf("\n%d. %s\n", i + 1, favorites[i].outfit.title);
+        printf("   Items:\n");
+        for (int j = 0; j < NUM_ITEMS; j++) {
+            printf("   - %s\n", favorites[i].outfit.items[j]);
+        }
+        printf("   Accessory: %s\n", favorites[i].accessory);
+        printf("   Shoes: %s\n", favorites[i].shoe);
+        printf("   Jacket: %s\n", favorites[i].jacket);
+        if (strlen(favorites[i].note) > 0) {
+            printf("   Note: %s\n", favorites[i].note);
+        }
+        print_divider();
+    }
+
+    printf("\nWould you like to remove any favorite? (1: Yes, 2: No): ");
+    if (get_valid_choice(2) == 1) {
+        printf("Enter the number of the outfit to remove (1-%d): ", favorite_count);
+        int choice = get_valid_choice(favorite_count);
+        remove_favorite(choice - 1);
+    }
+}
+
+void remove_favorite(int index) {
+    if (index < 0 || index >= favorite_count) {
+        printf(RED "\nInvalid favorite index!\n" RESET);
+        return;
+    }
+
+    // Shift remaining favorites up
+    for (int i = index; i < favorite_count - 1; i++) {
+        favorites[i] = favorites[i + 1];
+    }
+    favorite_count--;
+    printf(GREEN "\nFavorite outfit removed!\n" RESET);
 }
