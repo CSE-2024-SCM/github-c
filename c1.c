@@ -152,7 +152,7 @@ void rate_outfit(const char *outfit_name); // New rating feature
 void show_ratings(); // New rating feature
 void display_fashion_affirmation(); // New minor feature
 void get_general_feedback(); // NEW FEATURE: General feedback function
-
+void display_random_tip(); // NEW FEATURE: Random tip function
 
 // =============================
 // USER NOTE FEATURE IMPLEMENTATION
@@ -187,6 +187,7 @@ int main() {
         print_banner();
         display_greeting(); // Uses the consolidated greeting
         display_seasonal_tip(); // Call the new seasonal tip function
+        display_random_tip(); // NEW FEATURE: Call the random tip function
         main_menu(); // Displays main menu options
         int choice; // Declare choice here
 
@@ -688,4 +689,27 @@ void get_general_feedback() {
     // In a real application, this feedback would be saved to a file or sent to a server.
     // For this example, we just acknowledge it.
     wait_for_user();
+}
+
+// =============================
+// NEW FEATURE: RANDOM TIP OF THE DAY
+// =============================
+void display_random_tip() {
+    const char *tips[] = {
+        "Tip: Always check the weather forecast before choosing your outfit!",
+        "Tip: Accessorize wisely – a small detail can elevate your entire look.",
+        "Tip: Comfort is key, especially for everyday wear. Don't sacrifice it for style.",
+        "Tip: Hydration is important for overall health and radiant skin!",
+        "Tip: A good night's sleep can improve your mood and energy levels.",
+        "Tip: Don't be afraid to experiment with new colors and styles!",
+        "Tip: Keep your clothes clean and well-maintained to make them last longer.",
+        "Tip: Plan your outfits the night before to save time in the morning.",
+        "Tip: Remember to smile – it's your best accessory!",
+        "Tip: Take a few minutes to stretch every morning to energize your body."
+    };
+    int num_tips = sizeof(tips) / sizeof(tips[0]);
+    int random_index = rand() % num_tips;
+
+    printf(CYAN "\n--- Tip of the Day ---\n" RESET);
+    printf("%s\n", tips[random_index]);
 }
