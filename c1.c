@@ -1,6 +1,6 @@
 
 // =============================
-// Weather-Based Outfit Recommender in C
+// Weather-Based Outfit Recommender in C Programming 
 // =============================
 // Description:
 // Enhanced version with jacket selection, tips, history, time-based greetings,
