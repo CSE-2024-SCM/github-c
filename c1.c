@@ -152,6 +152,7 @@ void rate_outfit(const char *outfit_name); // New rating feature
 void show_ratings(); // New rating feature
 void display_fashion_affirmation(); // New minor feature
 
+
 // =============================
 // USER NOTE FEATURE IMPLEMENTATION
 // =============================
