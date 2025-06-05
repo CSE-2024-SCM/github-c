@@ -84,9 +84,6 @@ Feel free to contribute to this project by:
 3. ✨ Making your changes
 4. 🔄 Submitting a pull request
 
-## 📝 License
-This project is open source and available under the MIT License.
-
 ## 👨‍💻 Author
 Created as a learning project for C programming and weather-based outfit recommendations.
 
