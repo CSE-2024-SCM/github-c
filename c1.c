@@ -77,7 +77,7 @@ Outfit cold_outfits[NUM_OUTFITS] = {
 };
 
 Outfit moderate_outfits[NUM_OUTFITS] = {
-    {"Smart Casual", {"Long Sleeve Shirt", "Chinos", "Light Cardigan"}},
+    {"Smart Casual", {"Long Sleeve Pullover", "Chinos", "Light Cardigan"}},
     {"Weekend Relaxed", {"Henley Shirt", "Khaki Pants", "Zip-up Hoodie"}},
     {"Urban Explorer", {"Denim Jacket", "Joggers", "Graphic Tee"}},
     {"Business Breeze", {"Blazer", "Slacks", "Oxford Shirt"}},
