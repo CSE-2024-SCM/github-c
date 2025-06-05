@@ -150,6 +150,7 @@ void repeat_menu();
 void farewell();
 void rate_outfit(const char *outfit_name); // New rating feature
 void show_ratings(); // New rating feature
+void display_fashion_affirmation(); // New minor feature
 
 
 // =============================
@@ -186,15 +187,26 @@ int main() {
         display_greeting(); // Uses the consolidated greeting
         display_seasonal_tip(); // Call the new seasonal tip function
         main_menu(); // Displays main menu options
-        int choice = get_valid_choice(4);
+        int choice; // Declare choice here
 
-        if (choice == 4) { // Exit option
+        // Use get_valid_choice with the correct max for the main menu
+        printf("\nEnter your choice (1-5, or 0 for Surprise Me!): "); // Adjusted prompt for main menu
+        if (scanf("%d", &choice) != 1 || (choice < 0 || choice > 5)) { // Check for valid input range for main menu
+            printf(RED "Invalid input. Please enter a number between 1 and 5, or 0 for Surprise Me!\n" RESET);
+            while (getchar() != '\n'); // Clear invalid input
+            continue; // Restart the loop
+        }
+        while (getchar() != '\n'); // Clear the newline character
+
+        if (choice == 5) { // Exit option (now 5)
             break;
         } else if (choice == 2) { // View History
             show_history();
-        } else if (choice == 3) { // Help
+        } else if (choice == 3) { // View Outfit Ratings
+            show_ratings();
+        } else if (choice == 4) { // Help (now 4)
             show_help_section();
-        } else { // Get Outfit Recommendation
+        } else { // Get Outfit Recommendation (choice == 1 or 0 for surprise)
             get_weather_input(&current_weather);
             check_for_secret_code();
             simulate_loading("Analyzing weather and crafting your stylish fit...");
@@ -281,6 +293,8 @@ void recommend_outfit(const Weather *weather) {
         printf("Your note: %s\n", user_note);
     if (strlen(mood) > 0)
         printf("Your mood: %s\n", mood);
+
+    display_fashion_affirmation(); // <--- ADDED MINOR FEATURE CALL
 
     show_weather_tips(weather->condition);
     suggest_color_style(weather->condition);
@@ -524,7 +538,6 @@ void save_history(Outfit o, Weather w, const char *a, const char *s, const char 
     }
     history[history_count].outfit = o;
     strcpy(history[history_count].weather.city, w.city);
-    // history[history_count].outfit.title[MAX_LEN - 1] = '\0'; // This line is not needed as it's part of outfit struct copy
     history[history_count].weather.temp = w.temp;
     strcpy(history[history_count].weather.condition, w.condition);
     strcpy(history[history_count].accessory, a);
@@ -637,4 +650,22 @@ void show_ratings() {
         print_divider();
     }
     wait_for_user(); // Added to pause after showing ratings
+}
+
+// =============================
+// NEW MINOR FEATURE: FASHION AFFIRMATION
+// =============================
+void display_fashion_affirmation() {
+    const char *affirmations[] = {
+        "You'll look absolutely fabulous today!",
+        "Dress with confidence and own your day!",
+        "Your style is uniquely you – rock it!",
+        "Every outfit is an opportunity to express yourself!",
+        "Today's outfit is a masterpiece, just like you!"
+    };
+    int num_affirmations = sizeof(affirmations) / sizeof(affirmations[0]);
+    int random_index = rand() % num_affirmations;
+
+    printf(YELLOW "\n--- Fashion Inspiration ---\n" RESET);
+    printf("%s\n", affirmations[random_index]);
 }
