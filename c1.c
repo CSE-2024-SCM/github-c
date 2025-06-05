@@ -31,6 +31,8 @@
 #define MIN_TEMP -50.0
 #define MAX_TEMP 50.0
 #define MAX_FAVORITES 20
+#define NUM_SEASONS 4
+#define NUM_SPECIAL_EVENTS 5
 
 // ANSI color codes for terminal UI
 #define GREEN   "\033[1;32m"
@@ -81,6 +83,13 @@ typedef struct {
     char note[MAX_LEN];
 } FavoriteOutfit;
 
+typedef struct {
+    char name[MAX_LEN];
+    char description[MAX_LEN];
+    char outfit_suggestion[MAX_LEN];
+    char color_scheme[MAX_LEN];
+} SpecialEvent;
+
 // =============================
 // GLOBAL DATA ARRAYS
 // =============================
@@ -130,6 +139,25 @@ int rating_count = 0;
 FavoriteOutfit favorites[MAX_FAVORITES];
 int favorite_count = 0;
 
+const char *seasons[NUM_SEASONS] = {"Spring", "Summer", "Fall", "Winter"};
+SpecialEvent special_events[NUM_SPECIAL_EVENTS] = {
+    {"Holiday Party", "Festive gathering with family and friends", 
+     "Elegant dress or suit with seasonal accessories", 
+     "Rich reds, deep greens, and metallic accents"},
+    {"Beach Day", "Perfect for summer relaxation", 
+     "Light, breathable fabrics with UV protection", 
+     "Bright colors and tropical patterns"},
+    {"Fall Festival", "Outdoor celebration with seasonal activities", 
+     "Layered clothing with comfortable footwear", 
+     "Warm earth tones and autumn colors"},
+    {"Spring Garden Party", "Outdoor social gathering", 
+     "Light layers with floral patterns", 
+     "Pastel colors and fresh spring tones"},
+    {"Winter Sports Day", "Active outdoor winter activities", 
+     "Thermal layers with waterproof outerwear", 
+     "Bright colors for visibility in snow"}
+};
+
 // =============================
 // FUNCTION DECLARATIONS
 // =============================
@@ -166,7 +194,9 @@ void display_fashion_affirmation(); // New minor feature
 void add_to_favorites(const Outfit *outfit, const char *accessory, const char *shoe, const char *jacket);
 void show_favorites();
 void remove_favorite(int index);
-
+void show_seasonal_suggestions();
+const char* get_current_season();
+void suggest_special_event_outfit();
 
 // =============================
 // USER NOTE FEATURE IMPLEMENTATION
@@ -201,10 +231,11 @@ int main() {
         print_banner();
         display_greeting(); // Uses the consolidated greeting
         display_seasonal_tip(); // Call the new seasonal tip function
-        printf("\n" CYAN "1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. View Favorite Outfits\n5. Exit\n" RESET);
-        int choice = get_valid_choice(5);
+        printf("\n" CYAN "1. Get Outfit Recommendation\n2. View Past Recommendations\n3. View Outfit Ratings\n4. View Favorite Outfits\n5. Seasonal Suggestions\n6. Exit\n" RESET);
+        int choice = get_valid_choice(6);
 
-        if (choice == 5) break;
+        if (choice == 6) break;
+        else if (choice == 5) show_seasonal_suggestions();
         else if (choice == 4) show_favorites();
         else if (choice == 3) show_ratings();
         else if (choice == 2) show_history();
@@ -526,7 +557,7 @@ void check_for_secret_code() {
 void show_help_section() {
     printf(CYAN "\n--- Help & Tips ---\n" RESET);
     printf("1. Temperature input: Enter in Celsius between %.1f and %.1f.\n", MIN_TEMP, MAX_TEMP);
-    printf("2. Condition: Examples - Sunny, Rainy, Cloudy, Snowy, Windy.\n");
+    printf("2. Condition: Examples - Sunny, Rainy, Cloudy, Snowy.\n");
     printf("3. Choose from multiple outfit options manually, or enter '0' for a surprise!\n");
     printf("4. Your selections are stored in history for review.\n");
     printf("5. Look out for hidden Easter eggs! 🤫\n");
@@ -747,4 +778,77 @@ void remove_favorite(int index) {
     }
     favorite_count--;
     printf(GREEN "\nFavorite outfit removed!\n" RESET);
+}
+
+const char* get_current_season() {
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+    int month = tm_info->tm_mon + 1;  // tm_mon is 0-11
+
+    if (month >= 3 && month <= 5) return seasons[0];  // Spring
+    if (month >= 6 && month <= 8) return seasons[1];  // Summer
+    if (month >= 9 && month <= 11) return seasons[2]; // Fall
+    return seasons[3];  // Winter
+}
+
+void show_seasonal_suggestions() {
+    const char *current_season = get_current_season();
+    printf(CYAN "\n--- %s Style Guide ---\n" RESET, current_season);
+    
+    if (strcmp(current_season, "Spring") == 0) {
+        printf("Spring Essentials:\n");
+        printf("- Light layers for changing temperatures\n");
+        printf("- Pastel colors and floral patterns\n");
+        printf("- Waterproof outerwear for spring showers\n");
+        printf("- Comfortable walking shoes\n");
+    }
+    else if (strcmp(current_season, "Summer") == 0) {
+        printf("Summer Must-Haves:\n");
+        printf("- Breathable, lightweight fabrics\n");
+        printf("- Sun protection accessories\n");
+        printf("- Quick-dry materials\n");
+        printf("- Comfortable sandals or breathable shoes\n");
+    }
+    else if (strcmp(current_season, "Fall") == 0) {
+        printf("Fall Favorites:\n");
+        printf("- Layered clothing for temperature changes\n");
+        printf("- Rich, warm colors\n");
+        printf("- Versatile outerwear\n");
+        printf("- Weather-appropriate footwear\n");
+    }
+    else {
+        printf("Winter Wardrobe:\n");
+        printf("- Thermal layers for warmth\n");
+        printf("- Insulated outerwear\n");
+        printf("- Waterproof boots\n");
+        printf("- Warm accessories (gloves, scarves, hats)\n");
+    }
+
+    printf("\nWould you like special event suggestions? (1: Yes, 2: No): ");
+    if (get_valid_choice(2) == 1) {
+        suggest_special_event_outfit();
+    }
+}
+
+void suggest_special_event_outfit() {
+    printf(CYAN "\n--- Special Event Suggestions ---\n" RESET);
+    printf("Select an event type:\n");
+    for (int i = 0; i < NUM_SPECIAL_EVENTS; i++) {
+        printf("%d. %s\n", i + 1, special_events[i].name);
+    }
+    
+    int choice = get_valid_choice(NUM_SPECIAL_EVENTS) - 1;
+    printf("\n%s\n", special_events[choice].description);
+    printf("Suggested Outfit: %s\n", special_events[choice].outfit_suggestion);
+    printf("Color Scheme: %s\n", special_events[choice].color_scheme);
+    
+    printf("\nWould you like to save this suggestion to favorites? (1: Yes, 2: No): ");
+    if (get_valid_choice(2) == 1) {
+        Outfit special_outfit = {
+            special_events[choice].name,
+            {"Base Layer", "Main Piece", "Outer Layer"}
+        };
+        add_to_favorites(&special_outfit, "Event-specific accessory", 
+                        "Appropriate footwear", "Weather-appropriate outerwear");
+    }
 }
