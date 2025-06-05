@@ -195,30 +195,6 @@ void suggest_color_style(const char *condition) {
 
 
 // =============================
-// DAY-BASED GREETING
-// =============================
-
-void display_greeting_with_day() {
-    time_t t = time(NULL);
-    struct tm *tm_info = localtime(&t);
-    int hour = tm_info->tm_hour;
-    int wday = tm_info->tm_wday;
-
-    const char *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-
-    printf(BLUE "\nHappy %s!\n" RESET, days[wday]);
-
-    if (hour < 12)
-        printf(GREEN "Good Morning! Start your day with great style!\n" RESET);
-    else if (hour < 18)
-        printf(YELLOW "Good Afternoon! Keep your outfit cool and comfortable.\n" RESET);
-    else
-        printf(CYAN "Good Evening! Time for something cozy or classy.\n" RESET);
-}
-
-
-
-// =============================
 // TEMPERATURE ADVICE
 // =============================
 
@@ -287,14 +263,6 @@ void show_help_section() {
 
 
 // =============================
-// EXTENDED MAIN MENU
-// =============================
-
-void main_menu() {
-    printf("\n" CYAN "Main Menu:\n1. Get Outfit Recommendation\n2. View History\n3. Help\n4. Exit\n" RESET);
-}
-
-// =============================
 // FINAL UPDATE TO RECOMMENDER
 // =============================
 
@@ -325,8 +293,6 @@ void recommend_outfit(const Weather *weather) {
         jackets = hot_jackets;
     }
 
-    give_temperature_advice(weather->temp);
-
     printf("\nChoose an outfit from the list below:\n");
     display_outfits(outfits, NUM_OUTFITS);
     int outfit_choice = get_valid_choice(NUM_OUTFITS) - 1;
@@ -356,6 +322,7 @@ void recommend_outfit(const Weather *weather) {
 
     show_weather_tips(weather->condition);
     suggest_color_style(weather->condition);
+    give_temperature_advice(weather->temp);
     save_history(selected, *weather, accessories[acc_choice], shoes[shoe_choice], jackets[jacket_choice]);
 
     printf("\nWould you like to rate this outfit? (1: Yes, 2: No): ");
@@ -378,13 +345,18 @@ void display_greeting() {
     time_t t = time(NULL);
     struct tm *tm_info = localtime(&t);
     int hour = tm_info->tm_hour;
+    int wday = tm_info->tm_wday;
+
+    const char *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+    printf(BLUE "\nHappy %s!\n" RESET, days[wday]);
 
     if (hour < 12)
-        printf(GREEN "\nGood Morning!\n" RESET);
+        printf(GREEN "Good Morning! Start your day with great style!\n" RESET);
     else if (hour < 18)
-        printf(YELLOW "\nGood Afternoon!\n" RESET);
+        printf(YELLOW "Good Afternoon! Keep your outfit cool and comfortable.\n" RESET);
     else
-        printf(CYAN "\nGood Evening!\n" RESET);
+        printf(CYAN "Good Evening! Time for something cozy or classy.\n" RESET);
 }
 
 void strip_newline(char *str) {
@@ -536,9 +508,12 @@ void rate_outfit(const char *outfit_name) {
 
     // Save rating
     ratings[rating_count].rating = rating;
-    strcpy(ratings[rating_count].feedback, feedback);
-    strcpy(ratings[rating_count].outfit_name, outfit_name);
-    strcpy(ratings[rating_count].date, date);
+    strncpy(ratings[rating_count].feedback, feedback, MAX_LEN - 1);
+    ratings[rating_count].feedback[MAX_LEN - 1] = '\0';
+    strncpy(ratings[rating_count].outfit_name, outfit_name, MAX_LEN - 1);
+    ratings[rating_count].outfit_name[MAX_LEN - 1] = '\0';
+    strncpy(ratings[rating_count].date, date, MAX_LEN - 1);
+    ratings[rating_count].date[MAX_LEN - 1] = '\0';
     rating_count++;
 
     printf(GREEN "\nThank you for your feedback!\n" RESET);
